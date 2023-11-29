@@ -1,0 +1,134 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_STRING_LENGTH 100
+
+typedef struct {
+    int clave;
+    char titulo[MAX_STRING_LENGTH];
+    int numPaginas;
+    char autor[MAX_STRING_LENGTH];
+    char editorial[MAX_STRING_LENGTH];
+} Libro;
+
+typedef struct Nodo {
+    Libro libro;
+    struct Nodo *siguiente;
+} Nodo;
+
+void insertarLibro(Nodo **pila, Libro libro) {
+    Nodo *nuevoNodo = (Nodo *)malloc(sizeof(Nodo));
+    if (nuevoNodo == NULL) {
+        printf("Error al reservar memoria.\n");
+        return;
+    }
+
+    nuevoNodo->libro = libro;
+    nuevoNodo->siguiente = *pila;
+    *pila = nuevoNodo;
+}
+
+Libro buscarLibro(Nodo *pila, int clave) {
+    Nodo *nodo = pila;
+    Libro libro = {.clave = -1};
+    while (nodo != NULL) {
+        if (nodo->libro.clave == clave) {
+            libro = nodo->libro;
+            break;
+        }
+        nodo = nodo->siguiente;
+    }
+    return libro;
+}
+
+void borrarLibro(Nodo **pila, int clave) {
+    Nodo *nodo = *pila;
+    Nodo *anterior = NULL;
+    while (nodo != NULL) {
+        if (nodo->libro.clave == clave) {
+            if (anterior == NULL) {
+                *pila = nodo->siguiente;
+            } else {
+                anterior->siguiente = nodo->siguiente;
+            }
+            free(nodo);
+            return;
+        }
+        anterior = nodo;
+        nodo = nodo->siguiente;
+    }
+    printf("Libro no encontrado.\n");
+}
+
+void mostrarLibro(Libro libro) {
+    printf("Clave: %d\n", libro.clave);
+    printf("Titulo: %s\n", libro.titulo);
+    printf("Numero de paginas: %d\n", libro.numPaginas);
+    printf("Autor: %s\n", libro.autor);
+    printf("Editorial: %s\n", libro.editorial);
+}
+
+int main() {
+    Nodo *pila = NULL;
+    int opcion;
+    Libro libro;
+
+    while (1) {
+        printf("BIENVENIDO AL SISTEMA DE BIBLIOTECA, selecciona una opción:\t");
+        printf("\n1. Insertar libro\n");
+        printf("2. Buscar por clave de libro\n");
+        printf("3. Borrar libro\n");
+        printf("4. Salir\n");
+        printf("Ingrese una opcion: ");
+        scanf("%d", &opcion);
+
+        switch (opcion) {
+            case 1:
+                printf("Ingrese la clave del libro: ");
+                scanf("%d", &libro.clave);
+
+                printf("Ingrese el titulo del libro: ");
+                getchar(); // Consumir el carácter de nueva línea pendiente en el buffer
+                fgets(libro.titulo, MAX_STRING_LENGTH, stdin);
+                libro.titulo[strcspn(libro.titulo, "\n")] = '\0'; // Eliminar el carácter de nueva línea
+
+                printf("Ingrese el numero de paginas del libro: ");
+                scanf("%d", &libro.numPaginas);
+
+                printf("Ingrese el nombre del autor del libro: ");
+                getchar(); // Consumir el carácter de nueva línea pendiente en el buffer
+                fgets(libro.autor, MAX_STRING_LENGTH, stdin);
+                libro.autor[strcspn(libro.autor, "\n")] = '\0'; // Eliminar el carácter de nueva línea
+
+                printf("Ingrese el nombre de la editorial del libro: ");
+                getchar(); // Consumir el carácter de nueva línea pendiente en el buffer
+                fgets(libro.editorial, MAX_STRING_LENGTH, stdin);
+                libro.editorial[strcspn(libro.editorial, "\n")] = '\0'; // Eliminar el carácter de nueva línea
+
+                insertarLibro(&pila, libro);
+                break;
+            case 2:
+                printf("Ingrese la clave del libro que desea buscar: ");
+                scanf("%d", &libro.clave);
+                libro = buscarLibro(pila, libro.clave);
+                if (libro.clave != -1) {
+                    mostrarLibro(libro);
+                } else {
+                    printf("No se encontro el libro con la clave ingresada.\n");
+                }
+                break;
+            case 3:
+                printf("Ingrese la clave del libro que desea borrar: ");
+                scanf("%d", &libro.clave);
+                borrarLibro(&pila, libro.clave);
+                break;
+            case 4:
+                return 0;
+            default:
+                printf("Opcion invalida.\n");
+        }
+    }
+
+    return 0;
+}
